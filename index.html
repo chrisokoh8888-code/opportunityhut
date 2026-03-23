@@ -110,39 +110,93 @@
       });
 
       displayTrends(filtered);
+// Main function to fetch data and populate UI
+  async function init() {
+    const { data, error } = await supabase
+      .from('trends')
+      .select('*')
+      .order('profit_score', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching trends:", error);
+      return;
     }
 
-    // -------------------
-    // Display trend cards
-    // -------------------
-    function displayTrends(trendsArray) {
-      const container = document.getElementById('trendCards');
-      container.innerHTML = ''; // Clear existing cards
-
-      trendsArray.forEach(trend => {
-        // Profit score color
-        let scoreClass = 'profit-low';
-        if (trend.profit_score >= 8) scoreClass = 'profit-high';
-        else if (trend.profit_score >= 6) scoreClass = 'profit-medium';
-
-        const card = document.createElement('div');
-        card.className = 'card bg-white';
-
-        card.innerHTML = `
-          <h3 class="text-lg font-bold mb-1">${trend.name}</h3>
-          <p class="text-gray-600 mb-1">${trend.category} | ${trend.stage}</p>
-          <p class="${scoreClass} font-semibold mb-2">Profit Score: ${trend.profit_score}</p>
-          <p class="text-gray-700 text-sm">${trend.description || ''}</p>
-        `;
-
-        container.appendChild(card);
-      });
-    }
+    const trends = data;
 
     // -------------------
-    // Initialize
+    // Populate Dropdowns
     // -------------------
-    fetchTrends();
-  </script>
+    const categoryDropdown = document.getElementById('categoryFilter');
+    const stageDropdown = document.getElementById('stageFilter');
+
+    // Categories
+    const categories = [...new Set(trends.map(t => t.category))];
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      categoryDropdown.appendChild(option);
+    });
+
+    // Stages
+    const stages = [...new Set(trends.map(t => t.stage))];
+    stages.forEach(stage => {
+      const option = document.createElement('option');
+      option.value = stage;
+      option.textContent = stage;
+      stageDropdown.appendChild(option);
+    });
+
+    // -------------------
+    // Display all trends initially
+    // -------------------
+    displayTrends(trends);
+
+    // -------------------
+    // Add filtering
+    // -------------------
+    categoryDropdown.addEventListener('change', () => filterTrends(trends));
+    stageDropdown.addEventListener('change', () => filterTrends(trends));
+  }
+
+  function filterTrends(trends) {
+    const selectedCategory = document.getElementById('categoryFilter').value;
+    const selectedStage = document.getElementById('stageFilter').value;
+
+    const filtered = trends.filter(t => {
+      return (selectedCategory === "" || t.category === selectedCategory) &&
+             (selectedStage === "" || t.stage === selectedStage);
+    });
+
+    displayTrends(filtered);
+  }
+
+  function displayTrends(trendsArray) {
+    const container = document.getElementById('trendCards');
+    container.innerHTML = '';
+
+    trendsArray.forEach(trend => {
+      let scoreClass = 'profit-low';
+      if (trend.profit_score >= 8) scoreClass = 'profit-high';
+      else if (trend.profit_score >= 6) scoreClass = 'profit-medium';
+
+      const card = document.createElement('div');
+      card.className = 'card bg-white';
+
+      card.innerHTML = `
+        <h3 class="text-lg font-bold mb-1">${trend.name}</h3>
+        <p class="text-gray-600 mb-1">${trend.category} | ${trend.stage}</p>
+        <p class="${scoreClass} font-semibold mb-2">Profit Score: ${trend.profit_score}</p>
+        <p class="text-gray-700 text-sm">${trend.description || ''}</p>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  // Initialize the app
+  init();
+</script>
 </body>
 </html>
