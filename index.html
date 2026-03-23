@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpportunityHut</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card { @apply border rounded p-4 shadow hover:shadow-lg transition; }
+    .profit-low { color: #E74C3C; }      /* Red */
+    .profit-medium { color: #F1C40F; }   /* Yellow */
+    .profit-high { color: #2ECC71; }     /* Green */
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 font-sans">
+
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-blue-600">OpportunityHut 🚀</h1>
+    <p class="text-gray-700">Discover trending ways to make money online early</p>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters flex gap-4 mb-6 justify-center">
+    <select id="categoryFilter" class="border p-2 rounded">
+      <option value="">All Categories</option>
+    </select>
+
+    <select id="stageFilter" class="border p-2 rounded">
+      <option value="">All Stages</option>
+    </select>
+  </div>
+
+  <!-- Trend Cards Container -->
+  <div id="trendCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <!-- Cards will be dynamically generated here -->
+  </div>
+
+  <footer class="text-center mt-10 text-gray-500">
+    &copy; 2026 OpportunityHut
+  </footer>
+
+  <script>
+    // -------------------
+    // Supabase Setup
+    // -------------------
+    const SUPABASE_URL = "https://kskruztjvoxmufgexvwc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtza3J1enRqdm94bXVmZ2V4dndjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxOTgwODEsImV4cCI6MjA4OTc3NDA4MX0.CgDZF0OeT8d8AIsHrnQBkkTBYwAkM8o5h82zIXOmoEw";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // -------------------
+    // Fetch trends from Supabase
+    // -------------------
+    let trends = [];
+
+    async function fetchTrends() {
+      const { data, error } = await supabase
+        .from('trends')
+        .select('*')
+        .order('profit_score', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching trends:", error);
+        return;
+      }
+
+      trends = data;
+      populateDropdowns();
+      displayTrends(trends);
+    }
+
+    // -------------------
+    // Populate dropdowns
+    // -------------------
+    function populateDropdowns() {
+      const categoryDropdown = document.getElementById('categoryFilter');
+      const stageDropdown = document.getElementById('stageFilter');
+
+      const categories = [...new Set(trends.map(t => t.category))];
+      categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        categoryDropdown.appendChild(option);
+      });
+
+      const stages = [...new Set(trends.map(t => t.stage))];
+      stages.forEach(stage => {
+        const option = document.createElement('option');
+        option.value = stage;
+        option.textContent = stage;
+        stageDropdown.appendChild(option);
+      });
+
+      // Add event listeners
+      categoryDropdown.addEventListener('change', filterTrends);
+      stageDropdown.addEventListener('change', filterTrends);
+    }
+
+    // -------------------
+    // Filter trends
+    // -------------------
+    function filterTrends() {
+      const selectedCategory = document.getElementById('categoryFilter').value;
+      const selectedStage = document.getElementById('stageFilter').value;
+
+      const filtered = trends.filter(t => {
+        return (selectedCategory === "" || t.category === selectedCategory) &&
+               (selectedStage === "" || t.stage === selectedStage);
+      });
+
+      displayTrends(filtered);
+    }
+
+    // -------------------
+    // Display trend cards
+    // -------------------
+    function displayTrends(trendsArray) {
+      const container = document.getElementById('trendCards');
+      container.innerHTML = ''; // Clear existing cards
+
+      trendsArray.forEach(trend => {
+        // Profit score color
+        let scoreClass = 'profit-low';
+        if (trend.profit_score >= 8) scoreClass = 'profit-high';
+        else if (trend.profit_score >= 6) scoreClass = 'profit-medium';
+
+        const card = document.createElement('div');
+        card.className = 'card bg-white';
+
+        card.innerHTML = `
+          <h3 class="text-lg font-bold mb-1">${trend.name}</h3>
+          <p class="text-gray-600 mb-1">${trend.category} | ${trend.stage}</p>
+          <p class="${scoreClass} font-semibold mb-2">Profit Score: ${trend.profit_score}</p>
+          <p class="text-gray-700 text-sm">${trend.description || ''}</p>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // -------------------
+    // Initialize
+    // -------------------
+    fetchTrends();
+  </script>
+</body>
+</html>
