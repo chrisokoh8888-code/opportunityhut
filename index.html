@@ -65,20 +65,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   function render(trends) {
-    container.innerHTML = "";
+  container.innerHTML = "";
 
-    trends.forEach(t => {
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded shadow cursor-pointer";
+  trends.forEach(t => {
+    const card = document.createElement("div");
+    card.className = "bg-white p-4 rounded shadow cursor-pointer";
 
-      card.innerHTML = `
-        <h2 class="font-bold">${t.name}</h2>
-        <p>${t.category} | ${t.stage}</p>
-        <p class="text-green-600">Score: ${t.profit_score}</p>
-      `;
+    // ← Make card clickable
+    card.onclick = () => {
+      window.location.href = `trend.html?id=${t.id}`;
+    };
 
-      container.appendChild(card);
-    });
+    card.innerHTML = `
+      <h2 class="font-bold">${t.name}</h2>
+      <p>${t.category} | ${t.stage}</p>
+      <p class="text-green-600">Score: ${t.profit_score}</p>
+    `;
+
+    container.appendChild(card);
+  });
   }
 
   render(allTrends);
