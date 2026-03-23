@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trend Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="p-4 bg-gray-100">
+
+<a href="index.html" class="text-blue-600">← Back</a>
+
+<div id="content" class="mt-4 bg-white p-4 rounded shadow"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const SUPABASE_URL = "https://kskruztjvoxmufgexvwc.supabase.co";
+
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtza3J1enRqdm94bXVmZ2V4dndjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxOTgwODEsImV4cCI6MjA4OTc3NDA4MX0.CgDZF0OeT8d8AIsHrnQBkkTBYwAkM8o5h82zIXOmoEw";
+
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  const { data, error } = await supabaseClient
+    .from("trends")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const container = document.getElementById("content");
+
+  if (error) {
+    container.innerHTML = "<p>Error loading trend</p>";
+    return;
+  }
+
+  container.innerHTML = `
+    <h1 class="text-2xl font-bold mb-2">${data.name}</h1>
+    <p class="mb-2">${data.category} | ${data.stage}</p>
+    <p class="text-green-600 font-bold mb-4">Score: ${data.profit_score}</p>
+
+    <h2 class="font-bold">Description</h2>
+    <p class="mb-4">${data.description || "No description"}</p>
+
+    <h2 class="font-bold">How to Start</h2>
+    <p class="mb-4">${data.how_to_start || "Coming soon..."}</p>
+
+    <h2 class="font-bold">Monetization</h2>
+    <p>${data.influencer_signals || "Coming soon..."}</p>
+  `;
+});
+</script>
+
+</body>
+</html>
+
