@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OpportunityHut</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="p-4 bg-gray-100">
+
+<h1 class="text-2xl font-bold mb-4">OpportunityHut 🚀</h1>
+
+<div id="trendCards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const SUPABASE_URL = "https://kskruztjvoxmufgexvwc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtza3J1enRqdm94bXVmZ2V4dndjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxOTgwODEsImV4cCI6MjA4OTc3NDA4MX0.CgDZF0OeT8d8AIsHrnQBkkTBYwAkM8o5h82zIXOmoEw";
+
+  // VERY IMPORTANT FIX
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const container = document.getElementById("trendCards");
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("trends")
+      .select("*");
+
+    if (error) {
+      container.innerHTML = "<p style='color:red'>Error: " + error.message + "</p>";
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = "<p>No data from Supabase</p>";
+      return;
+    }
+
+    data.forEach(t => {
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded shadow";
+
+      card.innerHTML = `
+        <h2 class="font-bold">${t.name}</h2>
+        <p>${t.category} | ${t.stage}</p>
+        <p class="text-green-600">Score: ${t.profit_score}</p>
+      `;
+
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    container.innerHTML = "<p style='color:red'>JS Error: " + err.message + "</p>";
+  }
+
+});
+</script>
+
+</body>
+</html>
